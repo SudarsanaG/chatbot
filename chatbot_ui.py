@@ -9,7 +9,37 @@ from fastapi.staticfiles import StaticFiles
 import json
 import asyncio
 from typing import Dict, List
-from src.agent import MedicalSchedulingAgent, ConversationState
+# Try to import Ollama agent first, then OpenAI, then fallback to rule-based
+try:
+    from src.ollama_agent import OllamaMedicalSchedulingAgent
+    # Test if Ollama is actually running
+    import requests
+    try:
+        response = requests.get("http://localhost:11434/api/tags", timeout=2)
+        if response.status_code == 200:
+            LLMMedicalSchedulingAgent = OllamaMedicalSchedulingAgent
+            LLM_AVAILABLE = True
+            LLM_TYPE = "Ollama"
+            print("✅ Ollama LLM Agent loaded successfully (Free Local LLM)")
+        else:
+            raise Exception("Ollama not responding")
+    except:
+        raise Exception("Ollama not running")
+except Exception as e:
+    print(f"⚠️  Ollama Agent not available: {e}")
+    try:
+        from src.llm_agent import LLMMedicalSchedulingAgent
+        LLM_AVAILABLE = True
+        LLM_TYPE = "OpenAI"
+        print("✅ OpenAI LLM Agent loaded successfully")
+    except ImportError as e2:
+        print(f"⚠️  OpenAI LLM Agent not available: {e2}")
+        print("📝 Falling back to rule-based agent")
+        from src.agent import MedicalSchedulingAgent as LLMMedicalSchedulingAgent
+        LLM_AVAILABLE = False
+        LLM_TYPE = "Rule-based"
+
+from src.agent import ConversationState
 import uvicorn
 import os
 
@@ -19,13 +49,22 @@ app = FastAPI(title="RagaAI Medical Scheduling Agent")
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
-        self.agent_instances: Dict[WebSocket, MedicalSchedulingAgent] = {}
+        self.agent_instances: Dict[WebSocket, LLMMedicalSchedulingAgent] = {}
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
         # Create a new agent instance for this connection
-        self.agent_instances[websocket] = MedicalSchedulingAgent()
+        try:
+            if LLM_AVAILABLE:
+                self.agent_instances[websocket] = LLMMedicalSchedulingAgent()
+            else:
+                self.agent_instances[websocket] = LLMMedicalSchedulingAgent()
+        except Exception as e:
+            print(f"❌ Error creating agent: {e}")
+            # Fallback to rule-based agent
+            from src.agent import MedicalSchedulingAgent
+            self.agent_instances[websocket] = MedicalSchedulingAgent()
         print(f"New connection established. Total connections: {len(self.active_connections)}")
 
     def disconnect(self, websocket: WebSocket):
@@ -849,7 +888,15 @@ async def websocket_endpoint(websocket: WebSocket):
             
             if message_data.get("type") == "reset":
                 # Reset the agent for this connection
-                manager.agent_instances[websocket] = MedicalSchedulingAgent()
+                try:
+                    if LLM_AVAILABLE:
+                        manager.agent_instances[websocket] = LLMMedicalSchedulingAgent()
+                    else:
+                        manager.agent_instances[websocket] = LLMMedicalSchedulingAgent()
+                except Exception as e:
+                    print(f"❌ Error resetting agent: {e}")
+                    from src.agent import MedicalSchedulingAgent
+                    manager.agent_instances[websocket] = MedicalSchedulingAgent()
                 await manager.send_personal_message(
                     json.dumps({
                         "type": "message",

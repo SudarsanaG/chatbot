@@ -35,18 +35,16 @@ def send_intake_form(email: str, pdf_path: str = "forms/New Patient Intake Form.
         msg['To'] = email
         
         # Email body
-        body = """
-        Dear Patient,
-        
-        Thank you for scheduling your appointment with us. Please find attached your intake form.
-        
-        Please complete and return this form before your appointment to help us prepare for your visit.
-        
-        If you have any questions, please don't hesitate to contact us.
-        
-        Best regards,
-        RagaAI Medical Scheduling Team
-        """
+        body = """Dear Patient,
+
+Thank you for scheduling your appointment with us. Please find attached your intake form.
+
+Please complete and return this form before your appointment to help us prepare for your visit.
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+RagaAI Medical Scheduling Team"""
         
         msg.attach(MIMEText(body, 'plain'))
 
