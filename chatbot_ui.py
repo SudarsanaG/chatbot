@@ -386,12 +386,111 @@ HTML_TEMPLATE = """
             font-weight: 700;
         }
         
-        .appointment-summary p {
-            margin: 6px 0;
-            font-size: 15px;
-            color: #047857;
-        }
-    </style>
+                 .appointment-summary p {
+             margin: 6px 0;
+             font-size: 15px;
+             color: #047857;
+         }
+         
+         .doctor-selection {
+             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+             border: 1px solid #0ea5e9;
+             border-radius: 16px;
+             padding: 20px;
+             margin: 15px 0;
+             box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+         }
+         
+         .doctor-selection h4 {
+             color: #0c4a6e;
+             margin-bottom: 15px;
+             font-size: 18px;
+             font-weight: 700;
+         }
+         
+         .doctor-search {
+             margin-bottom: 15px;
+         }
+         
+         .doctor-search input {
+             width: 100%;
+             padding: 12px 16px;
+             border: 2px solid #e5e7eb;
+             border-radius: 12px;
+             font-size: 14px;
+             outline: none;
+             transition: all 0.3s ease;
+             background: white;
+         }
+         
+         .doctor-search input:focus {
+             border-color: #0ea5e9;
+             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+         }
+         
+         .doctor-grid {
+             display: grid;
+             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+             gap: 10px;
+             max-height: 200px;
+             overflow-y: auto;
+         }
+         
+         .doctor-option {
+             padding: 12px 16px;
+             background: white;
+             border: 2px solid #e5e7eb;
+             border-radius: 12px;
+             cursor: pointer;
+             font-size: 14px;
+             font-weight: 500;
+             transition: all 0.3s ease;
+             text-align: center;
+         }
+         
+         .doctor-option:hover {
+             border-color: #0ea5e9;
+             background: #f0f9ff;
+             transform: translateY(-1px);
+         }
+         
+         .doctor-option.selected {
+             border-color: #059669;
+             background: #ecfdf5;
+             color: #065f46;
+         }
+         
+         .doctor-grid::-webkit-scrollbar {
+             width: 6px;
+         }
+         
+         .doctor-grid::-webkit-scrollbar-track {
+             background: transparent;
+         }
+         
+         .doctor-grid::-webkit-scrollbar-thumb {
+             background: rgba(0, 0, 0, 0.1);
+             border-radius: 3px;
+         }
+         
+         .change-selection-btn {
+             padding: 8px 16px;
+             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+             color: white;
+             border: none;
+             border-radius: 12px;
+             cursor: pointer;
+             font-size: 13px;
+             font-weight: 600;
+             transition: all 0.3s ease;
+             box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+         }
+         
+         .change-selection-btn:hover {
+             transform: translateY(-1px);
+             box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+         }
+     </style>
 </head>
 <body>
     <div class="connection-status" id="connectionStatus">Connecting...</div>
@@ -451,18 +550,24 @@ HTML_TEMPLATE = """
                 console.log('Connected to WebSocket');
             };
             
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                hideTypingIndicator();
-                
-                if (data.type === 'message') {
-                    addMessage(data.message, 'assistant', data.message_type || 'normal');
-                } else if (data.type === 'appointment_summary') {
-                    showAppointmentSummary(data.appointment);
-                } else if (data.type === 'status') {
-                    updateConnectionStatus('connected', data.message);
-                }
-            };
+                         ws.onmessage = function(event) {
+                 const data = JSON.parse(event.data);
+                 hideTypingIndicator();
+                 
+                 if (data.type === 'message') {
+                     addMessage(data.message, 'assistant', data.message_type || 'normal');
+                     
+                     // Check if this is a doctor selection message
+                     if (data.message.includes('Which doctor would you like to see?') && data.message.includes('Available doctors:')) {
+                         const doctorList = data.message.split('Available doctors: ')[1];
+                         showDoctorSelection(doctorList);
+                     }
+                 } else if (data.type === 'appointment_summary') {
+                     showAppointmentSummary(data.appointment);
+                 } else if (data.type === 'status') {
+                     updateConnectionStatus('connected', data.message);
+                 }
+             };
             
             ws.onclose = function(event) {
                 isConnected = false;
@@ -547,24 +652,153 @@ HTML_TEMPLATE = """
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
         
-        function showAppointmentSummary(appointment) {
-            const chatMessages = document.getElementById('chatMessages');
-            const summaryDiv = document.createElement('div');
-            summaryDiv.className = 'appointment-summary';
-            
-            summaryDiv.innerHTML = `
-                <h4>🎉 Appointment Confirmed!</h4>
-                <p><strong>Patient:</strong> ${appointment.patient.first_name} ${appointment.patient.last_name}</p>
-                <p><strong>Doctor:</strong> ${appointment.doctor}</p>
-                <p><strong>Date:</strong> ${appointment.date}</p>
-                <p><strong>Time:</strong> ${appointment.time}</p>
-                <p><strong>Duration:</strong> ${appointment.duration} minutes</p>
-                <p><strong>Type:</strong> ${appointment.patient.patient_type} Patient</p>
-            `;
-            
-            chatMessages.appendChild(summaryDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+                 function showAppointmentSummary(appointment) {
+             const chatMessages = document.getElementById('chatMessages');
+             const summaryDiv = document.createElement('div');
+             summaryDiv.className = 'appointment-summary';
+             
+             summaryDiv.innerHTML = `
+                 <h4>🎉 Appointment Confirmed!</h4>
+                 <p><strong>Patient:</strong> ${appointment.patient.first_name} ${appointment.patient.last_name}</p>
+                 <p><strong>Doctor:</strong> ${appointment.doctor}</p>
+                 <p><strong>Date:</strong> ${appointment.date}</p>
+                 <p><strong>Time:</strong> ${appointment.time}</p>
+                 <p><strong>Duration:</strong> ${appointment.duration} minutes</p>
+                 <p><strong>Type:</strong> ${appointment.patient.patient_type} Patient</p>
+             `;
+             
+             chatMessages.appendChild(summaryDiv);
+             chatMessages.scrollTop = chatMessages.scrollHeight;
+         }
+         
+         function showDoctorSelection(doctors) {
+             const chatMessages = document.getElementById('chatMessages');
+             const selectionDiv = document.createElement('div');
+             selectionDiv.className = 'doctor-selection';
+             selectionDiv.id = 'doctorSelection';
+             
+             const doctorList = doctors.split(', ').map(doctor => doctor.trim());
+             
+             selectionDiv.innerHTML = `
+                 <h4>👨‍⚕️ Select Your Doctor</h4>
+                 <div class="doctor-search">
+                     <input type="text" id="doctorSearch" placeholder="Search doctors by name..." onkeyup="filterDoctors()">
+                 </div>
+                 <div class="doctor-grid" id="doctorGrid">
+                     ${doctorList.map(doctor => `
+                         <div class="doctor-option" onclick="selectDoctor('${doctor}')" data-name="${doctor.toLowerCase()}">
+                             ${doctor}
+                         </div>
+                     `).join('')}
+                 </div>
+                 <div class="selection-actions" id="selectionActions" style="display: none; margin-top: 15px; text-align: center;">
+                     <button class="change-selection-btn" onclick="resetDoctorSelection()">🔄 Change Selection</button>
+                 </div>
+             `;
+             
+             chatMessages.appendChild(selectionDiv);
+             chatMessages.scrollTop = chatMessages.scrollHeight;
+         }
+         
+         function filterDoctors() {
+             const searchTerm = document.getElementById('doctorSearch').value.toLowerCase();
+             const doctorOptions = document.querySelectorAll('.doctor-option');
+             
+             doctorOptions.forEach(option => {
+                 const doctorName = option.getAttribute('data-name');
+                 if (doctorName.includes(searchTerm)) {
+                     option.style.display = 'block';
+                 } else {
+                     option.style.display = 'none';
+                 }
+             });
+         }
+         
+         function selectDoctor(doctorName) {
+             // Mark the selected doctor as selected
+             const doctorOptions = document.querySelectorAll('.doctor-option');
+             doctorOptions.forEach(option => {
+                 option.classList.remove('selected');
+                 if (option.textContent.trim() === doctorName) {
+                     option.classList.add('selected');
+                 }
+             });
+             
+             // Disable all other options to prevent multiple selections
+             doctorOptions.forEach(option => {
+                 if (option.textContent.trim() !== doctorName) {
+                     option.style.opacity = '0.5';
+                     option.style.cursor = 'not-allowed';
+                     option.onclick = null;
+                 }
+             });
+             
+             // Show the change selection button
+             const selectionActions = document.getElementById('selectionActions');
+             if (selectionActions) {
+                 selectionActions.style.display = 'block';
+             }
+             
+             // Add a confirmation message
+             const chatMessages = document.getElementById('chatMessages');
+             const confirmationDiv = document.createElement('div');
+             confirmationDiv.className = 'message user';
+             confirmationDiv.innerHTML = `
+                 <div class="message-content">
+                     <div>✅ Selected: ${doctorName}</div>
+                     <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                 </div>
+             `;
+             chatMessages.appendChild(confirmationDiv);
+             chatMessages.scrollTop = chatMessages.scrollHeight;
+             
+             // Send doctor selection to server
+             if (isConnected) {
+                 showTypingIndicator();
+                 
+                 ws.send(JSON.stringify({
+                     type: 'message',
+                     message: doctorName
+                 }));
+             }
+         }
+         
+         function resetDoctorSelection() {
+             // Reset all doctor options
+             const doctorOptions = document.querySelectorAll('.doctor-option');
+             doctorOptions.forEach(option => {
+                 option.classList.remove('selected');
+                 option.style.opacity = '1';
+                 option.style.cursor = 'pointer';
+                 option.onclick = () => selectDoctor(option.textContent.trim());
+             });
+             
+             // Hide the change selection button
+             const selectionActions = document.getElementById('selectionActions');
+             if (selectionActions) {
+                 selectionActions.style.display = 'none';
+             }
+             
+             // Clear the search input
+             const searchInput = document.getElementById('doctorSearch');
+             if (searchInput) {
+                 searchInput.value = '';
+                 filterDoctors(); // Reset the filter
+             }
+             
+             // Add a reset message
+             const chatMessages = document.getElementById('chatMessages');
+             const resetDiv = document.createElement('div');
+             resetDiv.className = 'message user';
+             resetDiv.innerHTML = `
+                 <div class="message-content">
+                     <div>🔄 Selection reset - please choose a doctor</div>
+                     <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                 </div>
+             `;
+             chatMessages.appendChild(resetDiv);
+             chatMessages.scrollTop = chatMessages.scrollHeight;
+         }
         
         function showTypingIndicator() {
             document.getElementById('typingIndicator').style.display = 'block';

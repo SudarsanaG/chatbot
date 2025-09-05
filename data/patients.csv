@@ -61,3 +61,7 @@ PatientID,FirstName,LastName,DOB,Phone,Email,PatientType
 60,Bookingtest,,01/01/1990,555-123-4567,booking@example.com,New
 61,Testuser,,01/01/1990,555-123-4567,test@example.com,New
 62,Integrationtest,,01/01/1990,555-999-8888,integration@example.com,New
+63,Sudarsana,,01/01/2000,7002477633,sudarsana.gogoi@gmail.com,New
+64,Jscqs,,01/01/2000,8387379103,ishanuj@gmail.com,New
+65,Isha,,01/01/00,8490048756,ishanuj@gmail.com,New
+66,Ishanuj,,01/01/2000,7002477633,ishanuj@gmail.com,New

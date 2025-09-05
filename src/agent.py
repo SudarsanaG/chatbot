@@ -312,39 +312,69 @@ class MedicalSchedulingAgent:
         return f"Perfect! You're now registered, {self.current_patient.first_name}. Which doctor would you like to see? Available doctors: {', '.join(self.schedules_db['Doctor'].unique())}"
     
     def _handle_doctor_selection(self, user_input: str, entities: Dict[str, Any]) -> str:
-        """Handle doctor selection"""
+        """Handle doctor selection with improved name matching"""
         available_doctors = self.schedules_db['Doctor'].unique()
         
-        # Check if user mentioned a specific doctor (case-insensitive and partial matching)
-        user_input_lower = user_input.lower().strip()
+        # Clean and normalize user input
+        user_input_clean = user_input.lower().strip()
         
-        # First, try exact matches
+        # Remove common prefixes and suffixes
+        prefixes_to_remove = ['dr.', 'dr', 'doctor']
+        for prefix in prefixes_to_remove:
+            if user_input_clean.startswith(prefix):
+                user_input_clean = user_input_clean[len(prefix):].strip()
+        
+        # First, try exact matches (case-insensitive)
         for doctor in available_doctors:
-            if doctor.lower() == user_input_lower:
+            if doctor.lower() == user_input.lower():
                 self.current_appointment = AppointmentInfo(patient=self.current_patient)
                 self.current_appointment.doctor = doctor
                 self.conversation_state = ConversationState.SCHEDULING
                 return self._show_available_slots(doctor)
         
-        # Then try partial matches (doctor name contains user input)
+        # Try fuzzy matching for better accuracy
+        best_match = None
+        best_score = 0
+        
         for doctor in available_doctors:
             doctor_lower = doctor.lower()
-            if user_input_lower in doctor_lower or doctor_lower in user_input_lower:
-                self.current_appointment = AppointmentInfo(patient=self.current_patient)
-                self.current_appointment.doctor = doctor
-                self.conversation_state = ConversationState.SCHEDULING
-                return self._show_available_slots(doctor)
+            
+            # Calculate fuzzy match score
+            score = fuzz.ratio(user_input_clean, doctor_lower)
+            
+            # Also check if user input is contained in doctor name or vice versa
+            if user_input_clean in doctor_lower or doctor_lower in user_input_clean:
+                score = max(score, 80)  # Boost score for substring matches
+            
+            # Check individual name parts
+            doctor_parts = doctor_lower.replace('dr.', '').strip().split()
+            for part in doctor_parts:
+                if part and len(part) > 2:  # Ignore very short parts
+                    part_score = fuzz.ratio(user_input_clean, part)
+                    if part_score > 70:  # Good match for individual name part
+                        score = max(score, part_score)
+            
+            # Check if user input matches first name
+            if len(doctor_parts) >= 2:
+                first_name = doctor_parts[0]
+                if user_input_clean == first_name:
+                    score = max(score, 90)
+            
+            # Check if user input matches last name
+            if len(doctor_parts) >= 2:
+                last_name = doctor_parts[-1]
+                if user_input_clean == last_name:
+                    score = max(score, 90)
+            
+            if score > best_score and score > 60:  # Minimum threshold for matching
+                best_score = score
+                best_match = doctor
         
-        # Try matching just the last name
-        for doctor in available_doctors:
-            doctor_parts = doctor.lower().split()
-            if len(doctor_parts) > 1:  # Has "Dr." and last name
-                last_name = doctor_parts[-1]  # Get last name
-                if user_input_lower == last_name:
-                    self.current_appointment = AppointmentInfo(patient=self.current_patient)
-                    self.current_appointment.doctor = doctor  # Use the full doctor name from database
-                    self.conversation_state = ConversationState.SCHEDULING
-                    return self._show_available_slots(doctor)
+        if best_match:
+            self.current_appointment = AppointmentInfo(patient=self.current_patient)
+            self.current_appointment.doctor = best_match
+            self.conversation_state = ConversationState.SCHEDULING
+            return self._show_available_slots(best_match)
         
         return f"I didn't catch which doctor you'd like to see. Available doctors are: {', '.join(available_doctors)}. Which one would you prefer?"
     
