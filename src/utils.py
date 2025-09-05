@@ -27,49 +27,49 @@ def send_intake_form(email: str, pdf_path: str = "forms/New Patient Intake Form.
     return f"✅ Intake form sent to {email} (simulated - check forms folder)"
 
     # --- Real Mode (uncomment below if you want to send real emails) ---
-    """
-    try:
-        msg = MIMEMultipart()
-        msg['Subject'] = "Your Appointment Intake Form - RagaAI Medical"
-        msg['From'] = "noreply@ragaai-medical.com"
-        msg['To'] = email
-        
-        # Email body
-        body = """Dear Patient,
-
-Thank you for scheduling your appointment with us. Please find attached your intake form.
-
-Please complete and return this form before your appointment to help us prepare for your visit.
-
-If you have any questions, please don't hesitate to contact us.
-
-Best regards,
-RagaAI Medical Scheduling Team"""
-        
-        msg.attach(MIMEText(body, 'plain'))
-
-        # Attach PDF
-        with open(pdf_path, "rb") as attachment:
-            part = MIMEBase('application', 'octet-stream')
-            part.set_payload(attachment.read())
-        
-        encoders.encode_base64(part)
-        part.add_header(
-            'Content-Disposition',
-            f'attachment; filename= {os.path.basename(pdf_path)}'
-        )
-        msg.attach(part)
-
-        # Send email
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login("your-email@example.com", "your-app-password")
-            smtp.send_message(msg)
-
-        return f"✅ Intake form emailed to {email}"
-        
-    except Exception as e:
-        return f"❌ Failed to send intake form: {str(e)}"
-    """
+    # """
+    # try:
+    #     msg = MIMEMultipart()
+    #     msg['Subject'] = "Your Appointment Intake Form - RagaAI Medical"
+    #     msg['From'] = "noreply@ragaai-medical.com"
+    #     msg['To'] = email
+    #     
+    #     # Email body
+    #     body = """Dear Patient,
+    #
+    # Thank you for scheduling your appointment with us. Please find attached your intake form.
+    #
+    # Please complete and return this form before your appointment to help us prepare for your visit.
+    #
+    # If you have any questions, please don't hesitate to contact us.
+    #
+    # Best regards,
+    # RagaAI Medical Scheduling Team"""
+    #     
+    #     msg.attach(MIMEText(body, 'plain'))
+    #
+    #     # Attach PDF
+    #     with open(pdf_path, "rb") as attachment:
+    #         part = MIMEBase('application', 'octet-stream')
+    #         part.set_payload(attachment.read())
+    #     
+    #     encoders.encode_base64(part)
+    #     part.add_header(
+    #         'Content-Disposition',
+    #         f'attachment; filename= {os.path.basename(pdf_path)}'
+    #     )
+    #     msg.attach(part)
+    #
+    #     # Send email
+    #     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+    #         smtp.login("your-email@example.com", "your-app-password")
+    #         smtp.send_message(msg)
+    #
+    #     return f"✅ Intake form emailed to {email}"
+    #     
+    # except Exception as e:
+    #     return f"❌ Failed to send intake form: {str(e)}"
+    # """
 
 def validate_patient_data(patient_data: Dict) -> Dict[str, str]:
     """

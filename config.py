@@ -19,8 +19,12 @@ class Config:
     TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "your-auth-token")
     TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER", "+1234567890")
     
-    # OpenAI Configuration
+    # LLM Configuration
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your-openai-api-key")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCAE9fOgrnoyDF8zF4DlsicaXmzuEA1whE")
+    
+    # LLM Provider Selection
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini")  # "openai" or "gemini"
     
     # Application Configuration
     DEBUG = os.getenv("DEBUG", "True").lower() == "true"
@@ -64,6 +68,15 @@ class Config:
             "account_sid": cls.TWILIO_ACCOUNT_SID,
             "auth_token": cls.TWILIO_AUTH_TOKEN,
             "from_number": cls.TWILIO_FROM_NUMBER
+        }
+    
+    @classmethod
+    def get_llm_config(cls) -> Dict[str, Any]:
+        """Get LLM configuration"""
+        return {
+            "provider": cls.LLM_PROVIDER,
+            "openai_api_key": cls.OPENAI_API_KEY,
+            "gemini_api_key": cls.GEMINI_API_KEY
         }
     
     @classmethod

@@ -1,0 +1,5 @@
+[33m23f603d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Remove hardcoded API key from test_llm.py for security
+[33m6b66903[m ...
+[33m06244df[m[33m ([m[1;31morigin/main[m[33m)[m Added doctor selection
+[33ma1628dd[m Improved ui
+[33md8e32b5[m initial commit
