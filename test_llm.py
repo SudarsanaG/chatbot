@@ -6,8 +6,12 @@ Simple test script for LLM agent
 import os
 import sys
 
-# Set the API key
-os.environ["OPENAI_API_KEY"] = "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"
+# Check if API key is set
+if not os.environ.get("OPENAI_API_KEY"):
+    print("❌ OPENAI_API_KEY environment variable not set")
+    print("Please set your OpenAI API key:")
+    print("export OPENAI_API_KEY='your-api-key-here'")
+    sys.exit(1)
 
 try:
     print("🤖 Testing LLM Agent...")
