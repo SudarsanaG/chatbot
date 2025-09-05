@@ -55,3 +55,9 @@ PatientID,FirstName,LastName,DOB,Phone,Email,PatientType
 54,Ishanuj,,20/02/2009,7002477633,isha@gmail.com,New
 55,Isha,,10/01/2001,7002477633,isha@gmail.com,New
 56,Ana,,01/01/2000,1234567890,ishanuj@gmail.com,New
+57,John,,01/15/1990,555-123-4567,john@example.com,New
+58,Newpatient,,01/01/2000,555-123-4567,new@example.com,New
+59,Testuser,,01/01/1990,555-123-4567,test@example.com,New
+60,Bookingtest,,01/01/1990,555-123-4567,booking@example.com,New
+61,Testuser,,01/01/1990,555-123-4567,test@example.com,New
+62,Integrationtest,,01/01/1990,555-999-8888,integration@example.com,New
